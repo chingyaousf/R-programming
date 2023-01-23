@@ -24,3 +24,4 @@ myMean <- function(assignment2) { (sum(assignment2)/length(assignment2)) }
 myMean (assignment2)
 
 #Both codes are worked. Instructor's code in the expression function return can be removed and has the same result.
+
