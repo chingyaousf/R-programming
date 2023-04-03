@@ -1,0 +1,87 @@
+---
+title: "kwpower package"
+author: "Ching Yao Yang"
+date: "01 April 2023"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# kwpower
+
+The **kwpower package** can Perform **Kruskal-Wallis Test** to **Multiple Pairwise-Comparison** between groups to test the mean ranks differ between groups and produce the graphics to visualize the data instead of running Kruskal-Wallis Test, Multiple Pairwise-Comparison and graphic separately.
+
+For example, we would like to test if the differences between 2015 to 2022 the average of each month's temperature in Tampa affected by global warming and visualize the data. In here we use plantgrowth dataset for demostration.
+
+Reads a CSV file and choose the file interactively using a dialog box. The resulting data is saved to a variable called my_data. converts the group variable in my_data to a factor variable and load the data.
+
+```{r}
+my_data <- read.csv(file.choose())
+# converting group to a factor variable
+my_data$group <- factor(my_data$group) 
+my_data
+```
+
+1.  Performs the Kruskal-Wallis test to compare the weight variable across the different levels of the group variable. The resulting test statistic, degrees of freedom, and ***p-value*** are saved in the kwp variable.
+
+2.  Checks the ***p-value*** of the Kruskal-Wallis test and prints a message depending on whether the p-value is greater than or equal to 0.05. If the p-value is greater than or equal to 0.05, it prints **"No significance between groups"** and stops the execution.
+
+3.  If the ***p-value*** is less than 0.05, it prints **"Significance between groups"** and performs pairwise Wilcoxon tests to compare the weights between each pair of groups, adjusting the p-values using the Benjamini-Hochberg method. The results of the pairwise Wilcoxon tests are saved in the pairwise_wilcox variable and printed.
+
+```{r}
+kwp <- kruskal.test(weight ~ group, data = my_data)
+if (kwp$p.value >= 0.05) {
+  stop("No significance between groups")
+} else {
+  print("Significance between groups")
+  pairwise_wilcox <- pairwise.wilcox.test(my_data$weight, my_data$group,
+                                          p.adjust.method = "BH", by = my_data$group)
+  pairwise_wilcox
+}
+```
+
+**install.packages("ggpubr")**
+
+Installs the ggpubr package, which provides additional functions for creating publication-ready plots using ggplot2.
+
+**library("ggpubr")** Load the ggpubr package, making its functions available for use.
+
+**library(ggplot2)** Load the ggplot2 package, which is a popular data visualization package in R.
+
+```{r}
+install.packages("ggpubr")
+library("ggpubr")
+library(ggplot2)
+```
+
+creates a **ppt1** scatter plot (geom_point()) with loess smoothing (geom_smooth()) for each group's weightfor each group's weight,
+
+```{r}
+ppt1 <- ggplot(my_data, aes(x = group, y = weight, color = group)) +
+  geom_point() +
+  geom_smooth(method = "loess") +
+  scale_color_manual(values = c("black", "red", "blue")) +
+  theme(legend.position = c(.90, .80))+ 
+  ggtitle("Data by group")+
+  theme(plot.title = element_text(size = 12, color = "darkblue", hjust = 0.5))
+```
+
+creates a **ppt2** box plot for comparation.
+
+```{r}
+ppt2 <- ggboxplot(my_data, x = "group", y = "weight", 
+          color = "group", palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+          order = c("ctrol", "trt1", "trt2"),
+          ylab = "Weight", xlab = "group")
+```
+
+**Display the plots**
+
+```{r}
+print(ppt1)
+print(ppt2)
+```
